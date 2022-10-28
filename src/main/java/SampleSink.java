@@ -1,3 +1,4 @@
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -20,11 +21,11 @@ public class SampleSink {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         env.getConfig().disableSysoutLogging();
-        IgniteSink igniteSink = null;
-        igniteSink = new IgniteSink(TEST_CACHE, GRID_CONF_FILE);
+        IgniteSink igniteSink = new IgniteSink(TEST_CACHE, GRID_CONF_FILE);
         igniteSink.setAllowOverwrite(true);
         igniteSink.setAutoFlushFrequency(10);
-        igniteSink.start();
+        Configuration configuration = new Configuration();
+        igniteSink.open(configuration);
 
         DataStream<Map> stream = env.addSource(new SourceFunction<Map>() {
             private boolean running = true;
@@ -52,9 +53,8 @@ public class SampleSink {
                 env.execute();
             } catch (Exception e){
             e.printStackTrace();
-        }
-        finally {
-            igniteSink.stop();
+        } finally {
+            igniteSink.close();
         }
     }
 
